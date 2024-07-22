@@ -1,28 +1,82 @@
+const eraserBtn = document.querySelector('#eraser-btn');
+const destroyBtn = document.querySelector('#destroy-btn');
+const modeBtn = document.querySelector('#mode-btn');
+const lineWidth = document.querySelector('#line-width');
+const color = document.querySelector('#color');
+const colorOptions = document.querySelectorAll('.color-option');
 const canvas = document.querySelector('canvas');
 const ctx = canvas.getContext('2d');
 
 canvas.width = 800;
 canvas.height = 800;
 
-// ctx.fillRect(200, 200, 50, 200);
-// ctx.fillRect(400, 200, 50, 200);
-// ctx.fillRect(300, 300, 50, 100);
-// ctx.fillRect(200, 200, 200, 20);
-// ctx.moveTo(200, 200);
-// ctx.lineTo(325, 100);
-// ctx.lineTo(450, 200);
-// ctx.fill();
+ctx.lineWidth = lineWidth.value;
 
-ctx.fillRect(210, 200, 15, 100);
-ctx.fillRect(350, 200, 15, 100);
-ctx.fillRect(260, 200, 60, 200);
+const colors = ['#1abc9c', '#2ecc71', '#f1c40f', '#d35400', '#2c3e50'];
 
-ctx.arc(290, 150, 50, 0, 2 * Math.PI);
-ctx.fill();
+let isPainting = false;
+let isFilling = false;
 
-ctx.beginPath();
-ctx.fillStyle = 'white';
-ctx.arc(310, 140, 8, 1 * Math.PI, 2 * Math.PI);
-ctx.arc(270, 140, 8, 1 * Math.PI, 2 * Math.PI);
-ctx.fill();
-ctx.closePath();
+function onMove(event) {
+  if (isPainting) {
+    ctx.lineTo(event.offsetX, event.offsetY);
+    ctx.stroke();
+    return;
+  }
+  ctx.beginPath();
+  ctx.moveTo(event.offsetX, event.offsetY);
+}
+function onDown(event) {
+  isPainting = true;
+}
+function cancelPainting(event) {
+  isPainting = false;
+}
+function onLineWidthChange(event) {
+  ctx.lineWidth = event.target.value;
+}
+function onColorChange(event) {
+  ctx.strokeStyle = event.target.value;
+  ctx.fillStyle = event.target.value;
+}
+function onColorOptionClick(event) {
+  const colorValue = event.target.dataset.color;
+  ctx.strokeStyle = colorValue;
+  ctx.fillStyle = colorValue;
+  color.value = colorValue;
+}
+function onModeClick(event) {
+  isFilling = !isFilling;
+  modeBtn.innerText = isFilling ? 'Draw' : 'Fill';
+}
+function onCanvasClick(event) {
+  if (isFilling) {
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+  }
+}
+function onDestroyClick(event) {
+  ctx.fillStyle = 'white';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+function onEraserClick(event) {
+  ctx.strokeStyle = 'white';
+  isFilling = false;
+  modeBtn.innerText = isFilling ? 'Draw' : 'Fill';
+}
+
+canvas.addEventListener('mousemove', onMove);
+canvas.addEventListener('mousedown', onDown);
+canvas.addEventListener('mouseup', cancelPainting);
+canvas.addEventListener('mouseleave', cancelPainting);
+canvas.addEventListener('click', onCanvasClick);
+
+lineWidth.addEventListener('change', onLineWidthChange);
+color.addEventListener('change', onColorChange);
+
+colorOptions.forEach((option) => {
+  option.addEventListener('click', onColorOptionClick);
+});
+
+modeBtn.addEventListener('click', onModeClick);
+destroyBtn.addEventListener('click', onDestroyClick);
+eraserBtn.addEventListener('click', onEraserClick);
